@@ -62,7 +62,7 @@ void loop() {
     onoff_button_counter = ONOFF_BUTTON_COUNTER_MS;
   }
   update_control_leds();
-  int delayDivisions = 10;
+  int delayDivisions = 5;
   for(int index = 0; index < delayDivisions; index++) {
     int new_onoff_button_state = digitalRead(PIN_ONOFF_BUTTON);
     if (new_onoff_button_state != onoff_button_state) {
@@ -119,6 +119,8 @@ void fetch_monitoring_data() {
   monitoring_status = LED_CONTROL_MONITORING_CONNECTING_CODE;
   update_control_leds();
   HTTPClient http;
+  http.setConnectTimeout(2000);
+  http.setTimeout(2000);
   // Your Domain name with URL path or IP address with path
   http.begin(monitoring_url);
   // If you need server authentication, insert user and password below
@@ -178,12 +180,12 @@ void parse_monitoring_data(String payload) {
               startIndex = commaIndex + 1;
           }
           // Optionally, print the parsed numbers for debugging
-          Serial.print("Monitoring line: ");
-          for (int index = 0; index < 3; index++) {
-              Serial.print(lineValues[index]);
-              Serial.print(" ");
-          }
-          Serial.println();
+          // Serial.print("Monitoring line: ");
+          // for (int index = 0; index < 3; index++) {
+          //     Serial.print(lineValues[index]);
+          //     Serial.print(" ");
+          // }
+          //Serial.println();
           if (lineValues[0] >= 0 && lineValues[0] < LED_STRIP_ROWS && lineValues[1] >= 0 && lineValues[1] < LED_STRIP_PIXELS) {
              new_led_state[lineValues[0]][lineValues[1]] = lineValues[2];
           }
@@ -195,12 +197,14 @@ void parse_monitoring_data(String payload) {
     bool pixels_changed = false;
     for(int pixel = 0; pixel < LED_STRIP_PIXELS; pixel++) {
       if (new_led_state[row][pixel] != led_state[row][pixel]) {
-        set_led_strip_pixel(row, pixel, new_led_state[row][pixel]);
+        if (led_strips_active) {
+          set_led_strip_pixel(row, pixel, new_led_state[row][pixel]);
+        }
         led_state[row][pixel] = new_led_state[row][pixel];
         pixels_changed = true;
       }
     }
-    if (pixels_changed) {
+    if (pixels_changed && led_strips_active) {
       led_strips[row].show();
     }
   }

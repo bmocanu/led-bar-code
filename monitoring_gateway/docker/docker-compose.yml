@@ -1,0 +1,18 @@
+version: "3"
+services:
+  monitoring-gateway:
+    build: monitoring-gateway
+    image: my/monitoring-gateway
+    container_name: monitoring-gateway
+    hostname: monitoring-gateway
+    user: mntgwusr
+    restart: unless-stopped
+    networks:
+      - default-vnet
+    volumes:
+      - /home/user/monitoring-gateway/config:/config
+
+networks:
+  default-vnet:
+    external:
+      name: default-vnet
